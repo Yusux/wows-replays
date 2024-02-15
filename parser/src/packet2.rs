@@ -701,7 +701,7 @@ impl<'argtype> Parser<'argtype> {
             0x8 => self.parse_entity_method_packet(i)?,
             0xA => self.parse_position_packet(i)?,
             0x16 => self.parse_version_packet(i)?,
-            0x22 => self.parse_nested_property_update(i)?,
+            0x23 => self.parse_nested_property_update(i)?,
             0x24 => self.parse_camera_packet(i)?, // Note: We suspect that 0x18 is this also
             0x26 => self.parse_camera_mode_packet(i)?,
             0x27 => self.parse_map_packet(i)?,
@@ -713,7 +713,10 @@ impl<'argtype> Parser<'argtype> {
         Ok((i, payload))
     }
 
-    fn parse_packet<'a, 'b>(&'b mut self, i: &'a [u8]) -> IResult<&'a [u8], Packet<'a, 'b>> {
+    fn parse_packet<'a, 'b>(
+        &'b mut self,
+        i: &'a [u8]
+    ) -> IResult<&'a [u8], Packet<'a, 'b>> {
         let (i, packet_size) = le_u32(i)?;
         let (i, packet_type) = le_u32(i)?;
         let (i, clock) = le_f32(i)?;
@@ -763,6 +766,29 @@ impl<'argtype> Parser<'argtype> {
             p.process(packet);
         }
         Ok(())
+    }
+
+    /// Parse the valid part in the buffer
+    /// and return the number of bytes parsed
+    pub fn parse_buffer<'a, 'b, P: PacketProcessor>(
+        &'b mut self,
+        i: &'a [u8],
+        p: &mut P,
+    ) -> usize {
+        let mut i = i;
+        let mut total_parsed = 0;
+        while i.len() > 0 {
+            let (remaining, packet) = match self.parse_packet(i) {
+                Ok(x) => x,
+                Err(_) => {
+                    break;
+                }
+            };
+            i = remaining;
+            total_parsed += packet.packet_size as usize;
+            p.process(packet);
+        }
+        total_parsed
     }
 }
 

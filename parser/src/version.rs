@@ -1,6 +1,6 @@
 use crate::error::ErrorKind;
 use rust_embed::RustEmbed;
-use serde::Serialize;
+use serde_derive::Serialize;
 use std::borrow::Cow;
 use std::path::PathBuf;
 

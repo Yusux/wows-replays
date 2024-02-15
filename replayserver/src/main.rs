@@ -97,7 +97,7 @@ impl ReplayInfo {
             replay.file_name().unwrap().to_str().unwrap().to_string(),
             &replay_file.meta,
         );
-        p.parse_packets(&replay_file.packet_data, &mut processor);
+        let _ = p.parse_packets(&replay_file.packet_data, &mut processor);
         Ok(processor)
     }
 }
@@ -189,7 +189,7 @@ fn hello(name: &str, age: u8) -> String {
 struct Templates;
 
 #[get("/page/<pageid>")]
-fn page(pageid: u32, config: &State<ServerConfig>) -> rocket::response::content::Html<String> {
+fn page(pageid: u32, config: &State<ServerConfig>) -> rocket::response::content::RawHtml<String> {
     let mut tera = Tera::default();
     for fname in Templates::iter() {
         let content = Templates::get(&fname).unwrap();
@@ -205,7 +205,7 @@ fn page(pageid: u32, config: &State<ServerConfig>) -> rocket::response::content:
         let mut games = vec![];
         for (_, replay) in database.replays.iter() {
             if replay.is_ok() {
-                games.push(replay.clone().as_ref().ok().clone().unwrap());
+                games.push(replay.as_ref().ok().clone().unwrap());
             }
         }
         games.sort_by_key(|replay| {
@@ -225,7 +225,7 @@ fn page(pageid: u32, config: &State<ServerConfig>) -> rocket::response::content:
         context.insert("games", &games);
     } // Unlock the DB before we render (and potentially panic)
 
-    rocket::response::content::Html(tera.render("page.html.tera", &context).unwrap())
+    rocket::response::content::RawHtml(tera.render("page.html.tera", &context).unwrap())
 }
 
 struct DownloadResponder {

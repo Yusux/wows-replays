@@ -15,9 +15,9 @@ struct Header {
     num_files: i32,
     third_offset: i64,
     trailer_offset: i64,
-    first_block: Vec<u8>,
-    unknown1: i64,
-    unknown2: i64,
+    _first_block: Vec<u8>,
+    _unknown1: i64,
+    _unknown2: i64,
 }
 
 #[derive(Debug)]
@@ -25,7 +25,7 @@ struct Node {
     name: String,
     id: u64,
     parent: u64,
-    unknown: Vec<u8>,
+    _unknown: Vec<u8>,
 }
 
 #[derive(Debug, Clone)]
@@ -34,7 +34,7 @@ struct RawFileRecord {
     offset: i64,
     length: i32,
     uncompressed_length: i64,
-    raw: Vec<u8>,
+    _raw: Vec<u8>,
 }
 
 fn parse_header(i: &[u8]) -> IResult<&[u8], Header> {
@@ -52,9 +52,9 @@ fn parse_header(i: &[u8]) -> IResult<&[u8], Header> {
             num_nodes,
             num_files,
             third_offset,
-            first_block: first_block.to_owned(),
-            unknown1,
-            unknown2,
+            _first_block: first_block.to_owned(),
+            _unknown1: unknown1,
+            _unknown2: unknown2,
             trailer_offset,
         },
     ))
@@ -89,7 +89,7 @@ fn parse_pointers_with_strings(num_nodes: i32, i: &[u8]) -> IResult<&[u8], Vec<N
             name: string.to_owned(),
             id: id,
             parent: parent,
-            unknown: unknown.to_owned(),
+            _unknown: unknown.to_owned(),
         });
 
         i = new_i;
@@ -113,7 +113,7 @@ fn parse_file_record(i: &[u8]) -> IResult<&[u8], RawFileRecord> {
             offset,
             length,
             uncompressed_length,
-            raw: orig_i.to_owned(),
+            _raw: orig_i.to_owned(),
         },
     ))
 }
@@ -202,7 +202,7 @@ impl IdxFile {
 struct FileRecord {
     pkg_name: String,
     path: String,
-    id: u64,
+    _id: u64,
     offset: usize,
     length: usize,
     uncompressed_length: usize,
@@ -238,7 +238,7 @@ impl IdxSet {
             self.files.push(FileRecord {
                 pkg_name: other.pkg_name.clone(),
                 path: path,
-                id: file.id,
+                _id: file.id,
                 offset: file.offset as usize,
                 length: file.length as usize,
                 uncompressed_length: file.uncompressed_length as usize,

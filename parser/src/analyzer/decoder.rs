@@ -1,3 +1,5 @@
+#[allow(dead_code)]
+
 use crate::analyzer::{Analyzer, AnalyzerBuilder};
 use crate::packet2::{EntityMethodPacket, Packet, PacketType};
 use crate::unpack_rpc_args;
@@ -114,6 +116,53 @@ pub enum DeathCause {
     DepthCharge,
     SkipBombs,
     Unknown(u32),
+}
+
+pub enum ReplayPlayerProperty {
+    AccountId = 0,
+    AntiAbuseEnabled = 1,
+    AvatarId = 2,
+    CamouflageInfo = 3,
+    ClanColor = 4,
+    ClanId = 5,
+    ClanTag = 6,
+    CrewParams = 7,
+    DogTag = 8,
+    FragsCount = 9,
+    FriendlyFireEnabled = 10,
+    Id = 11,
+    InvitationsEnabled = 12,
+    IsAbuser = 13,
+    IsAlive = 14,
+    IsBot = 15,
+    IsClientLoaded = 16,
+    IsConnected = 17,
+    IsHidden = 18,
+    IsLeaver = 19,
+    IsPreBattleOwner = 20,
+    IsTShooter = 21,
+    KilledBuildingsCount = 22,
+    IsCookie = 23,
+    MaxHealth = 24,
+    Name = 25,
+    PlayerMode = 26,
+    PreBattleIdOnStart = 27,
+    PreBattleSign = 28,
+    PreBattleId = 29,
+    Realm = 30,
+    ShipComponents = 31,
+    ShipConfigDump = 32,
+    ShipId = 33,
+    ShipParamsId = 34,
+    SkinId = 35,
+    TeamId = 36,
+    TtkStatus = 37,
+}
+
+impl From<ReplayPlayerProperty> for i64 {
+    fn from(prop: ReplayPlayerProperty) -> i64 {
+        prop as i64
+    }
 }
 
 /// Contains the information describing a player
@@ -594,7 +643,7 @@ where
     }
 
     fn from_entity_method(
-        version: &crate::version::Version,
+        _version: &crate::version::Version,
         audit: bool,
         packet: &'rawpacket EntityMethodPacket<'argtype>,
     ) -> Self {
@@ -620,45 +669,46 @@ where
                 audience: std::str::from_utf8(&target).unwrap(),
                 message: std::str::from_utf8(&message).unwrap(),
             }
-        } else if *method == "receive_CommonCMD" {
-            let (audience, sender_id, line, a, b) = unpack_rpc_args!(args, u8, i32, u8, u32, u64);
+        // } else if *method == "receive_CommonCMD" {
+        //     println!("CommonCMD: {:?}", args);
+        //     let (audience, sender_id, line, a, b) = unpack_rpc_args!(args, u8, i32, u8, u32, u64);
 
-            let is_global = match audience {
-                0 => false,
-                1 => true,
-                _ => {
-                    panic!(
-                        "Got unknown audience {} sender=0x{:x} line={} a={:x} b={:x}",
-                        audience, sender_id, line, a, b
-                    );
-                }
-            };
-            let message = match line {
-                1 => VoiceLine::AttentionToSquare((a, b as u32)),
-                2 => VoiceLine::ConcentrateFire(b as i32),
-                3 => VoiceLine::RequestingSupport(None),
-                5 => VoiceLine::Wilco,
-                6 => VoiceLine::Negative,
-                7 => VoiceLine::WellDone, // TODO: Find the corresponding field
-                8 => VoiceLine::FairWinds,
-                9 => VoiceLine::Curses,
-                10 => VoiceLine::DefendTheBase,
-                11 => VoiceLine::ProvideAntiAircraft,
-                12 => VoiceLine::Retreat(if b != 0 { Some(b as i32) } else { None }),
-                13 => VoiceLine::IntelRequired,
-                14 => VoiceLine::SetSmokeScreen,
-                15 => VoiceLine::UsingRadar,
-                16 => VoiceLine::UsingHydroSearch,
-                _ => {
-                    panic!("Unknown voice line {} a={:x} b={:x}!", line, a, b);
-                }
-            };
+        //     let is_global = match audience {
+        //         0 => false,
+        //         1 => true,
+        //         _ => {
+        //             panic!(
+        //                 "Got unknown audience {} sender=0x{:x} line={} a={:x} b={:x}",
+        //                 audience, sender_id, line, a, b
+        //             );
+        //         }
+        //     };
+        //     let message = match line {
+        //         1 => VoiceLine::AttentionToSquare((a, b as u32)),
+        //         2 => VoiceLine::ConcentrateFire(b as i32),
+        //         3 => VoiceLine::RequestingSupport(None),
+        //         5 => VoiceLine::Wilco,
+        //         6 => VoiceLine::Negative,
+        //         7 => VoiceLine::WellDone, // TODO: Find the corresponding field
+        //         8 => VoiceLine::FairWinds,
+        //         9 => VoiceLine::Curses,
+        //         10 => VoiceLine::DefendTheBase,
+        //         11 => VoiceLine::ProvideAntiAircraft,
+        //         12 => VoiceLine::Retreat(if b != 0 { Some(b as i32) } else { None }),
+        //         13 => VoiceLine::IntelRequired,
+        //         14 => VoiceLine::SetSmokeScreen,
+        //         15 => VoiceLine::UsingRadar,
+        //         16 => VoiceLine::UsingHydroSearch,
+        //         _ => {
+        //             panic!("Unknown voice line {} a={:x} b={:x}!", line, a, b);
+        //         }
+        //     };
 
-            DecodedPacketPayload::VoiceLine {
-                sender_id,
-                is_global,
-                message,
-            }
+        //     DecodedPacketPayload::VoiceLine {
+        //         sender_id,
+        //         is_global,
+        //         message,
+        //     }
         } else if *method == "onArenaStateReceived" {
             let (arg0, arg1) = unpack_rpc_args!(args, i64, i8);
 
@@ -735,48 +785,6 @@ where
                         }
                     }
 
-                    let keys: HashMap<&'static str, i64> = if version
-                        .is_at_least(&crate::version::Version::from_client_exe("0,10,9,0"))
-                    {
-                        // 0.10.9 inserted things at 0x1 and 0x1F
-                        let mut h = HashMap::new();
-                        h.insert("avatarid", 0x2);
-                        h.insert("clan", 0x6);
-                        h.insert("health", 0x17);
-                        h.insert("username", 0x18);
-                        h.insert("shipid", 0x20);
-                        h.insert("playerid", 0x21);
-                        h.insert("playeravatarid", 0x22);
-                        h.insert("team", 0x23);
-                        h
-                    } else if version
-                        .is_at_least(&crate::version::Version::from_client_exe("0,10,7,0"))
-                    {
-                        // 0.10.7
-                        let mut h = HashMap::new();
-                        h.insert("avatarid", 0x1);
-                        h.insert("clan", 0x5);
-                        h.insert("health", 0x16);
-                        h.insert("username", 0x17);
-                        h.insert("shipid", 0x1e);
-                        h.insert("playerid", 0x1f);
-                        h.insert("playeravatarid", 0x20);
-                        h.insert("team", 0x21);
-                        h
-                    } else {
-                        // 0.10.6 and earlier
-                        let mut h = HashMap::new();
-                        h.insert("avatarid", 0x1);
-                        h.insert("clan", 0x5);
-                        h.insert("health", 0x15);
-                        h.insert("username", 0x16);
-                        h.insert("shipid", 0x1d);
-                        h.insert("playerid", 0x1e);
-                        h.insert("playeravatarid", 0x1f);
-                        h.insert("team", 0x20);
-                        h
-                    };
-
                     /*
                     1: Player ID
                     5: Clan name
@@ -786,26 +794,26 @@ where
                     1e: Player ship ID
                     1f: Player ship ID (why does this appear twice?)
                     */
-                    let avatar = values.get(keys.get("avatarid").unwrap()).unwrap();
-                    let username = values.get(keys.get("username").unwrap()).unwrap();
+                    let avatar = values.get(&ReplayPlayerProperty::AvatarId.into()).unwrap();
+                    let username = values.get(&ReplayPlayerProperty::Name.into()).unwrap();
                     let username = match username {
                         serde_pickle::value::Value::String(s) => s,
                         _ => {
                             panic!("{:?}", username);
                         }
                     };
-                    let clan = values.get(keys.get("clan").unwrap()).unwrap();
+                    let clan = values.get(&ReplayPlayerProperty::ClanTag.into()).unwrap();
                     let clan = match clan {
                         serde_pickle::value::Value::String(s) => s.clone(),
                         _ => {
                             panic!("{:?}", clan);
                         }
                     };
-                    let shipid = values.get(keys.get("shipid").unwrap()).unwrap();
-                    let playerid = values.get(keys.get("playerid").unwrap()).unwrap();
-                    let _playeravatarid = values.get(keys.get("playeravatarid").unwrap()).unwrap();
-                    let team = values.get(keys.get("team").unwrap()).unwrap();
-                    let health = values.get(keys.get("health").unwrap()).unwrap();
+                    let shipid = values.get(&ReplayPlayerProperty::ShipId.into()).unwrap();
+                    let playerid = values.get(&ReplayPlayerProperty::Id.into()).unwrap();
+                    let _playeravatarid = values.get(&ReplayPlayerProperty::SkinId.into()).unwrap();
+                    let team = values.get(&ReplayPlayerProperty::TeamId.into()).unwrap();
+                    let health = values.get(&ReplayPlayerProperty::MaxHealth.into()).unwrap();
 
                     let mut raw = HashMap::new();
                     for (k, v) in values.iter() {
@@ -987,9 +995,10 @@ where
                     crate::rpc::typedefs::ArgValue::FixedDict(m) => m,
                     _ => panic!(),
                 };
+                // println!("{:?}", map); // "periodicDamage": Float32(242.7), "vehicleID": Int32(409435), "instantDamage": Float32(0.0)
                 v.push(DamageReceived {
                     aggressor: map.get("vehicleID").unwrap().try_into().unwrap(),
-                    damage: map.get("damage").unwrap().try_into().unwrap(),
+                    damage: map.get("instantDamage").unwrap().try_into().unwrap(),
                 });
             }
             DecodedPacketPayload::DamageReceived {
@@ -1045,12 +1054,13 @@ where
                 updates,
                 arg1: args1,
             }
-        } else if *method == "onBattleEnd" {
-            let (winning_team, unknown) = unpack_rpc_args!(args, i8, u8);
-            DecodedPacketPayload::BattleEnd {
-                winning_team,
-                unknown,
-            }
+        // } else if *method == "onBattleEnd" {
+        //     println!("onBattleEnd: {:?}", args);
+        //     let (winning_team, unknown) = unpack_rpc_args!(args, i8, u8);
+        //     DecodedPacketPayload::BattleEnd {
+        //         winning_team,
+        //         unknown,
+        //     }
         } else if *method == "consumableUsed" {
             let (consumable, duration) = unpack_rpc_args!(args, i8, f32);
             let raw_consumable = consumable;

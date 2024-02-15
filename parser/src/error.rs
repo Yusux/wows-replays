@@ -57,6 +57,8 @@ pub enum ErrorKind {
     DecoderRingFailure(String),
     #[error("Unable to process packet")]
     ParsingFailure(String),
+    #[error("Invalid replay header")]
+    InvalidReplayHeader(String),
 }
 
 impl nom::error::ParseError<&[u8]> for Error {

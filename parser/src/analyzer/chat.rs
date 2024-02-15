@@ -39,10 +39,19 @@ impl Analyzer for ChatLogger {
                 message,
                 ..
             } => {
+                // Chat { entity_id: 409451, sender_id: -1, audience: "battle_prebattle", message: "IDS_OP_01_02_LEEROYY" } ?
+                // println!("{:?}", decoded.payload);
+                // println!("usernames: {:?}", self.usernames);
+                // if sender_id not in usernames
+                if !self.usernames.contains_key(&sender_id) {
+                    // println!("sender_id not in usernames: {}", sender_id);
+                    return;
+                }
                 println!(
                     "{}: {}: {} {}",
                     decoded.clock,
                     self.usernames.get(&sender_id).unwrap(),
+                    // sender_id,
                     audience,
                     message
                 );
@@ -59,8 +68,9 @@ impl Analyzer for ChatLogger {
             }
             DecodedPacketPayload::OnArenaStateReceived { players, .. } => {
                 for player in players.iter() {
+                    // println!("player: {:#?}", player);
                     self.usernames
-                        .insert(player.avatarid.try_into().unwrap(), player.username.clone());
+                        .insert(player.playerid.try_into().unwrap(), player.username.clone());
                 }
             }
             _ => {}

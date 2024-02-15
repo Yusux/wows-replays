@@ -39,7 +39,7 @@ impl AnalyzerBuilder for DamageTrailsBuilder {
 }
 
 struct ArtilleryShot {
-    start_time: f32,
+    _start_time: f32,
     start_pos: (f32, f32, f32),
     target: (f32, f32, f32),
 }
@@ -47,7 +47,7 @@ struct ArtilleryShot {
 struct DamageVector {
     start: (f32, f32),
     target: (f32, f32),
-    amount: f32,
+    _amount: f32,
 }
 
 struct DamageMonitor {
@@ -322,7 +322,7 @@ impl Analyzer for DamageMonitor {
                                             self.damages.push(DamageVector {
                                                 start: (shot.start_pos.0, shot.start_pos.2),
                                                 target: (self.position.0, self.position.2),
-                                                amount: amount,
+                                                _amount: amount,
                                             });
                                             break;
                                         }
@@ -360,7 +360,7 @@ impl Analyzer for DamageMonitor {
                                     }
                                     self.artillery_shots.get_mut(&owner_id).unwrap().push(
                                         ArtilleryShot {
-                                            start_time: packet.clock,
+                                            _start_time: packet.clock,
                                             start_pos: match shot.get("pos").unwrap() {
                                                 wows_replays::rpc::typedefs::ArgValue::Vector3(
                                                     v,
