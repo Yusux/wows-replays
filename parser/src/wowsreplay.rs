@@ -104,7 +104,6 @@ fn replay_format(i: &[u8]) -> IResult<&[u8], Replay> {
     let (i, unknown_slides_count) = le_u32(i)?;
     let (i, meta) = parse_meta(i)?;
     let (i, unknown) = process_unknown_meta(i, unknown_slides_count)?;
-    println!("{:?}", unknown);
     Ok((
         i,
         Replay {

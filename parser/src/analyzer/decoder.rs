@@ -1,5 +1,3 @@
-#[allow(dead_code)]
-
 use crate::analyzer::{Analyzer, AnalyzerBuilder};
 use crate::packet2::{EntityMethodPacket, Packet, PacketType};
 use crate::unpack_rpc_args;
